@@ -252,11 +252,11 @@ def now_playing(track_info,url,api_key,api_secret,session_key):
             }
 
     if "album" in track_info:
-        parameters["album"]=track_info["album"]
+        parameters["album"]=get_one_item(track_info["album"])
     if "track" in track_info:
-        parameters["trackNumber"]=track_info["track"]
+        parameters["trackNumber"]=get_one_item(track_info["track"])
     if "time" in track_info:
-        parameters["duration"]=track_info["time"]
+        parameters["duration"]=get_one_item(track_info["time"])
 
     parameters["api_sig"] = sign_signature(parameters,api_secret)
 
@@ -333,11 +333,11 @@ def record_failed_scrobble(track_info,timestamp,failed_scrobbles,cache_file_path
             }
 
     if "album" in track_info:
-        failed_scrobble["album"]=track_info["album"]
+        failed_scrobble["album"]=get_one_item(track_info["album"])
     if "track" in track_info:
-        failed_scrobble["trackNumber"]=track_info["track"]
+        failed_scrobble["trackNumber"]=get_one_item(track_info["track"])
     if "time" in track_info:
-        failed_scrobble["duration"]=track_info["time"]
+        failed_scrobble["duration"]=get_one_item(track_info["time"])
 
     if failed_scrobble not in failed_scrobbles:
         failed_scrobbles.append(failed_scrobble)
@@ -373,11 +373,11 @@ def scrobble_track(track_info,timestamp,url,api_key,api_secret,session_key):
             }
 
     if "album" in track_info:
-        parameters["album"]=track_info["album"]
+        parameters["album"]=get_one_item(track_info["album"])
     if "track" in track_info:
-        parameters["trackNumber"]=track_info["track"]
+        parameters["trackNumber"]=get_one_item(track_info["track"])
     if "time" in track_info:
-        parameters["duration"]=track_info["time"]
+        parameters["duration"]=get_one_item(track_info["time"])
 
     parameters["api_sig"] = sign_signature(parameters,api_secret)
 
@@ -572,6 +572,23 @@ def mpd_watch_track(client, session, config):
 
             time.sleep(update_interval)
 
+def get_one_item(maybe_list):
+    """
+    Get a scalar if given a scalar, or the first item from a list if given a
+    list
+
+    This is useful in cases where mpd returns a list of things for a given
+    metadata tag. This can happen because some formats (like ogg) support
+    multiple, redunant fields: fields with slightly different names can mean the
+    same thing.
+    """
+    if isinstance(maybe_list, list):
+        # Some files (like ogg) can specify the track number multiple times,
+        # with multiple keys. In that case, we get a list, so we just pick
+        # the first one.
+        return maybe_list[0]
+    else:
+        return maybe_list
 
 def find_session(session_file_path,base_url,api_key,api_secret):
     # Try to read a saved session...
